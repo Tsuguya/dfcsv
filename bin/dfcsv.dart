@@ -16,6 +16,7 @@ main(List<String> args) {
   parser.addOption('in',    abbr: 'i');
   parser.addOption('out',   abbr: 'o');
   parser.addOption('group', abbr: 'g');
+  parser.addOption('gs');
 
   var argResults = parser.parse(args);
 
@@ -39,8 +40,10 @@ main(List<String> args) {
     csvResult = searchAll();
   } else {
 
+    String gs = argResults['gs'] == null ? ',' : argResults['gs'];
+
     List<FileSystemEntity> targetFs = new List();
-    argResults['group'].split(',').forEach((dt) {
+    argResults['group'].split(gs).forEach((dt) {
       targetFs.addAll(parseDirectory(dt));
     });
 
