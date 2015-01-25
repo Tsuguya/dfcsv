@@ -5,8 +5,8 @@ library dfcsv;
 
 import 'dart:io';
 import 'dart:collection';
-import 'package:args/args.dart';
 import 'dart:async';
+import 'package:args/args.dart';
 
 Directory rootDir;
 
@@ -17,10 +17,10 @@ main(List<String> args) {
   parser.addOption('out',   abbr: 'o');
   parser.addOption('group', abbr: 'g');
 
-  var results = parser.parse(args);
+  var argResults = parser.parse(args);
 
-  if(results['in'] != null) {
-    rootDir = new Directory(results['in']);
+  if(argResults['in'] != null) {
+    rootDir = new Directory(argResults['in']);
   } else {
     rootDir = Directory.current;
   }
@@ -35,12 +35,12 @@ main(List<String> args) {
 
   Future<String> csvResult;
 
-  if(results['group'] == null) {
+  if(argResults['group'] == null) {
     csvResult = searchAll();
   } else {
 
     List<FileSystemEntity> targetFs = new List();
-    results['group'].split(',').forEach((dt) {
+    argResults['group'].split(',').forEach((dt) {
       targetFs.addAll(parseDirectory(dt));
     });
 
@@ -51,12 +51,10 @@ main(List<String> args) {
 
     File exportFile;
 
-    if(results['out'] == null) {
+    if(argResults['out'] == null) {
       exportFile = new File(rootDir.path + '/export.csv');
-    } else if(results['out'][0] == '/' || results['out'][0] == '~') {
-      exportFile = new File(results['out']);
     } else {
-      exportFile = new File(rootDir.path + '/' + results['out']);
+      exportFile = new File(argResults['out']);
     }
     exportFile.writeAsStringSync(csv);
     print('');
@@ -114,8 +112,7 @@ Future<String> search(Directory targetDir) {
 String pathSplitter(String path) {
 
   List<String> pathList = path.replaceFirst(rootDir.path, '').split('/');
-  String filename = pathList.last;
-  pathList.removeLast();
+  String filename = pathList.removeLast();
 
   String filePath = pathList.join('/');
   if(filePath == '') filePath = '/';
@@ -126,6 +123,7 @@ String pathSplitter(String path) {
 /**
  * パスの展開
  * *指定の部分を調べるのが目的
+ * TODO: Futureに変更
  */
 List<FileSystemEntity> parseDirectory(String dir) {
   List<FileSystemEntity> returnList = new List();
