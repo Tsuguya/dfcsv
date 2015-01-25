@@ -9,3 +9,5 @@ dependencies:
   args: any
 dev_dependencies:
   unittest: any
+executables:
+  dfcsv:
