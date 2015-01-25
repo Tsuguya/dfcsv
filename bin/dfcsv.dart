@@ -13,13 +13,14 @@ Directory rootDir;
 main(List<String> args) {
 
   var parser = new ArgParser();
-  parser.addOption('dir', abbr:'d');
-  parser.addOption('group', abbr:'g');
+  parser.addOption('in',    abbr: 'i');
+  parser.addOption('out',   abbr: 'o');
+  parser.addOption('group', abbr: 'g');
 
   var results = parser.parse(args);
 
-  if(results['dir'] != null) {
-    rootDir = new Directory(results['dir']);
+  if(results['in'] != null) {
+    rootDir = new Directory(results['in']);
   } else {
     rootDir = Directory.current;
   }
@@ -39,7 +40,6 @@ main(List<String> args) {
   } else {
 
     List<FileSystemEntity> targetFs = new List();
-
     results['group'].split(',').forEach((dt) {
       targetFs.addAll(parseDirectory(dt));
     });
@@ -48,7 +48,16 @@ main(List<String> args) {
   }
 
   csvResult.then((String csv) {
-    File exportFile = new File(rootDir.path + '/export.csv');
+
+    File exportFile;
+
+    if(results['out'] == null) {
+      exportFile = new File(rootDir.path + '/export.csv');
+    } else if(results['out'][0] == '/' || results['out'][0] == '~') {
+      exportFile = new File(results['out']);
+    } else {
+      exportFile = new File(rootDir.path + '/' + results['out']);
+    }
     exportFile.writeAsStringSync(csv);
     print('');
     print('complete!');
