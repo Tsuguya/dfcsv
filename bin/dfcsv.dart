@@ -56,12 +56,16 @@ main(List<String> args) {
 
 }
 
+/**
+ * groupオプションなしの場合
+ */
 Future<String> searchAll() =>
   search(rootDir).then((String csv) => csv.replaceAll(new RegExp(r'\n$'), ''));
 
+/**
+ * groupオプション付けた場合
+ */
 Future<String> searchGroups(List<FileSystemEntity> groups) {
-
-  print(groups);
 
   List<Future<String>> waitList = new List();
   groups.forEach((group) {
@@ -91,7 +95,7 @@ Future<String> search(Directory targetDir) {
     print(consolidated);
     return consolidated + '\n';
 
-  }).join('');
+  }).join();
 }
 
 /**
@@ -112,6 +116,7 @@ String pathSplitter(String path) {
 
 /**
  * パスの展開
+ * *指定の部分を調べるのが目的
  */
 List<FileSystemEntity> parseDirectory(String dir) {
   List<FileSystemEntity> returnList = new List();
@@ -120,14 +125,13 @@ List<FileSystemEntity> parseDirectory(String dir) {
 
   String current = rootDir.path;
   while(parseDir.length != 0) {
-    var str = parseDir.removeFirst();
-    if(str != '*') {
-      current += '/' + str;
+    String routeDir = parseDir.removeFirst();
+    if(routeDir != '*') {
+      current += '/' + routeDir;
       continue;
     }
-    print(current);
 
-    var searchDir = new Directory(current);
+    Directory searchDir = new Directory(current);
     if(!searchDir.existsSync()) return returnList;
 
     searchDir.listSync().forEach((entity) {
