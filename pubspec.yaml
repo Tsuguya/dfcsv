@@ -1,0 +1,11 @@
+name: dfcsv
+version: 0.0.1
+description: path split and export csv.
+#author: Tsuguya Toma tsuguya@outlook.com
+#homepage: https://github.com/Tsuguya
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+dependencies:
+  args: any
+dev_dependencies:
+  unittest: any
