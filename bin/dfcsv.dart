@@ -121,7 +121,8 @@ String pathSplitter(String path) {
   String filePath = pathList.join('/');
   if(filePath == '') filePath = '/';
 
-  return filePath + ',' + filename;
+  // csvで表示がバグらないためにパースする
+  return filePath.replaceAll('"', '""').replaceAll(',', '","') + ',' + filename.replaceAll('"', '""').replaceAll(',', '","');
 }
 
 /**
