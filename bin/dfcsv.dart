@@ -44,8 +44,9 @@ main(List<String> args) {
 
     List<FileSystemEntity> targetFs = new List();
     argResults['group'].split(gs).forEach((dt) {
-      targetFs.addAll(parseDirectory(dt));
+      targetFs.addAll(parseDirectory(dt, rootDir.path));
     });
+    print(targetFs);
 
     csvResult = searchGroups(targetFs);
   }
@@ -128,12 +129,13 @@ String pathSplitter(String path) {
  * *指定の部分を調べるのが目的
  * TODO: Futureに変更
  */
-List<FileSystemEntity> parseDirectory(String dir) {
+List<FileSystemEntity> parseDirectory(String dir, [String current = '']) {
   List<FileSystemEntity> returnList = new List();
 
   Queue parseDir = new Queue.from(dir.split('/'));
 
-  String current = rootDir.path;
+  if(parseDir.first == '') parseDir.removeFirst();
+
   while(parseDir.length != 0) {
     String routeDir = parseDir.removeFirst();
     if(routeDir != '*') {
@@ -147,7 +149,10 @@ List<FileSystemEntity> parseDirectory(String dir) {
     searchDir.listSync().forEach((entity) {
       if(parseDir.length != 0) {
          // 下位のパス指定がある場合はファイルはリストに含めない
-        if(entity is Directory) returnList.addAll(parseDirectory(entity.path + '/' + parseDir.join('/')));
+        if(entity is Directory) {
+          print('下位パス探索: ' + entity.path + '/' + parseDir.join('/'));
+          returnList.addAll(parseDirectory(entity.path + '/' + parseDir.join('/')));
+        }
         return;
       }
       returnList.add(entity);
