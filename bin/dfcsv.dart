@@ -4,26 +4,19 @@
 library dfcsv;
 
 import 'dart:io';
-import 'dart:collection';
-import 'dart:async';
+import 'package:dfcsv/parser.dart';
 import 'package:args/args.dart';
-
-Directory rootDir;
 
 main(List<String> args) {
 
   var parser = new ArgParser();
-  parser.addOption('in',    abbr: 'i');
+  parser.addOption('in',    abbr: 'i', defaultsTo: Directory.current.path);
   parser.addOption('out',   abbr: 'o');
   parser.addOption('group', abbr: 'g', allowMultiple: true);
 
   var argResults = parser.parse(args);
 
-  if(argResults['in'] != null) {
-    rootDir = new Directory(argResults['in']);
-  } else {
-    rootDir = Directory.current;
-  }
+  Directory rootDir = new Directory(argResults['in']);
 
   print(rootDir.path);
   print('');
@@ -33,22 +26,9 @@ main(List<String> args) {
     exit(1);
   }
 
-  Future<String> csvResult;
+  Parser csvParser = new Parser(rootDir);
 
-  if(argResults['group'].length == 0) {
-    csvResult = searchAll();
-  } else {
-
-    List<FileSystemEntity> targetFs = new List();
-    argResults['group'].forEach((String path) =>
-      targetFs.addAll(parseDirectory(path.replaceFirst(new RegExp(r'\/$'), ''), rootDir.path))
-    );
-    print(targetFs);
-
-    csvResult = searchGroups(targetFs);
-  }
-
-  csvResult.then((String csv) {
+  csvParser.search(argResults['group']).then((String csv) {
 
     File exportFile;
 
@@ -67,105 +47,4 @@ main(List<String> args) {
     });
   });
 
-}
-
-/**
- * groupオプションなしの場合
- */
-Future<String> searchAll() =>
-  search(rootDir).then((String csv) => csv.replaceAll(new RegExp(r'\n$'), ''));
-
-/**
- * groupオプション付けた場合
- */
-Future<String> searchGroups(List<FileSystemEntity> groups) {
-
-  List<Future<String>> waitList = new List();
-  groups.forEach((group) {
-    if(group is File) {
-      String fileSplit = pathSplitter(group.path);
-      print('* File: ' + fileSplit);
-      waitList.add(new Future.value(fileSplit + '\n'));
-      return;
-    }
-    waitList.add(search(group));
-
-  });
-
-  return Future.wait(waitList).then((List<String> result) => result.join(',\n,\n'));
-}
-
-/**
- * ファイル探索
- */
-Future<String> search(Directory targetDir) {
-  print('* Search: ' + targetDir.path);
-
-  return targetDir.list(recursive: true, followLinks: false).map((entity) {
-    if(entity is Directory) return '';
-
-    String consolidated = pathSplitter(entity.path);
-    print(consolidated);
-    return consolidated + '\n';
-
-  }).join();
-}
-
-/**
- * rootDirより上の階層の削除と
- * パスとファイル名の分離(カンマ区切り)を行う
- */
-String pathSplitter(String path) {
-
-  List<String> pathList = path.replaceFirst(rootDir.path, '').split('/');
-  String filename = pathList.removeLast();
-
-  String filePath = pathList.join('/');
-  if(filePath == '') filePath = '/';
-
-  // csvで表示がバグらないためにパースする
-  return filePath.replaceAll('"', '""').replaceAll(',', '","') + ',' + filename.replaceAll('"', '""').replaceAll(',', '","');
-}
-
-/**
- * パスの展開
- * *指定の部分を調べるのが目的
- * TODO: Futureに変更
- */
-List<FileSystemEntity> parseDirectory(String dir, [String current = '']) {
-  List<FileSystemEntity> returnList = new List();
-
-  Queue parseDir = new Queue.from(dir.split('/'));
-
-  if(parseDir.first == '') parseDir.removeFirst();
-
-  while(parseDir.length != 0) {
-    String routeDir = parseDir.removeFirst();
-    if(routeDir != '*') {
-      current += '/' + routeDir;
-      continue;
-    }
-
-    Directory searchDir = new Directory(current);
-    if(!searchDir.existsSync()) return returnList;
-
-    searchDir.listSync().forEach((entity) {
-      if(parseDir.length != 0) {
-         // 下位のパス指定がある場合はファイルはリストに含めない
-        if(entity is Directory) {
-          returnList.addAll(parseDirectory(entity.path + '/' + parseDir.join('/')));
-        }
-        return;
-      }
-      returnList.add(entity);
-    });
-    break;
-  }
-
-  if(returnList.length == 0) {
-    Directory currentDir = new Directory(current);
-    if(currentDir.existsSync()) returnList.add(currentDir);
-  }
-
-  return returnList;
 }

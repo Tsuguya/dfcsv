@@ -3,7 +3,7 @@
 
 library all_tests;
 
-import 'dfcsv_test.dart' as dir_test;
+import 'dfcsv_test.dart' as dfcsv_test;
 
 void main() {
   dir_test.defineTests();
