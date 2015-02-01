@@ -15,8 +15,7 @@ main(List<String> args) {
   var parser = new ArgParser();
   parser.addOption('in',    abbr: 'i');
   parser.addOption('out',   abbr: 'o');
-  parser.addOption('group', abbr: 'g');
-  parser.addOption('gs');
+  parser.addOption('group', abbr: 'g', allowMultiple: true);
 
   var argResults = parser.parse(args);
 
@@ -36,16 +35,14 @@ main(List<String> args) {
 
   Future<String> csvResult;
 
-  if(argResults['group'] == null) {
+  if(argResults['group'].length == 0) {
     csvResult = searchAll();
   } else {
 
-    String gs = argResults['gs'] == null ? ',' : argResults['gs'];
-
     List<FileSystemEntity> targetFs = new List();
-    argResults['group'].split(gs).forEach((dt) {
-      targetFs.addAll(parseDirectory(dt, rootDir.path));
-    });
+    argResults['group'].forEach((String path) =>
+      targetFs.addAll(parseDirectory(path.replaceFirst(new RegExp(r'\/$'), ''), rootDir.path))
+    );
     print(targetFs);
 
     csvResult = searchGroups(targetFs);
@@ -60,9 +57,14 @@ main(List<String> args) {
     } else {
       exportFile = new File(argResults['out']);
     }
-    exportFile.writeAsStringSync(csv);
     print('');
-    print('complete!');
+    exportFile.writeAsString(csv).catchError((err) {
+      print(err);
+      print('break.');
+      exit(1);
+    }).then((t) {
+      print('complete!');
+    });
   });
 
 }
@@ -151,7 +153,6 @@ List<FileSystemEntity> parseDirectory(String dir, [String current = '']) {
       if(parseDir.length != 0) {
          // 下位のパス指定がある場合はファイルはリストに含めない
         if(entity is Directory) {
-          print('下位パス探索: ' + entity.path + '/' + parseDir.join('/'));
           returnList.addAll(parseDirectory(entity.path + '/' + parseDir.join('/')));
         }
         return;
