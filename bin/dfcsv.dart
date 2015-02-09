@@ -11,7 +11,7 @@ main(List<String> args) {
 
   var parser = new ArgParser();
   parser.addOption('in',    abbr: 'i', defaultsTo: Directory.current.path);
-  parser.addOption('out',   abbr: 'o');
+  parser.addOption('out',   abbr: 'o', defaultsTo: Directory.current.path + '/export.csv');
   parser.addOption('group', abbr: 'g', allowMultiple: true);
 
   var argResults = parser.parse(args);
@@ -30,19 +30,15 @@ main(List<String> args) {
 
   csvParser.search(argResults['group']).then((String csv) {
 
-    File exportFile;
-
-    if(argResults['out'] == null) {
-      exportFile = new File(rootDir.path + '/export.csv');
-    } else {
-      exportFile = new File(argResults['out']);
-    }
+    File exportFile = new File(argResults['out']);
     print('');
-    exportFile.writeAsString(csv).catchError((err) {
+    exportFile.writeAsString(csv)
+    .catchError((err) {
       print(err);
       print('break.');
       exit(1);
-    }).then((t) {
+    })
+    .then((t) {
       print('complete!');
     });
   });
