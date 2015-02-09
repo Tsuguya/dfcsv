@@ -10,13 +10,13 @@ import 'package:args/args.dart';
 main(List<String> args) {
 
   var parser = new ArgParser();
-  parser.addOption('in',    abbr: 'i', defaultsTo: Directory.current.path);
+  parser.addOption('in',    abbr: 'i', defaultsTo: '');
   parser.addOption('out',   abbr: 'o', defaultsTo: Directory.current.path + '/export.csv');
   parser.addOption('group', abbr: 'g', allowMultiple: true);
 
   var argResults = parser.parse(args);
 
-  Directory rootDir = new Directory(argResults['in']);
+  Directory rootDir = new Directory(Directory.current.path + '/' + argResults['in']);
 
   print(rootDir.path);
   print('');
