@@ -13,10 +13,26 @@ main(List<String> args) {
   parser.addOption('in',    abbr: 'i', defaultsTo: '');
   parser.addOption('out',   abbr: 'o', defaultsTo: Directory.current.path + '/export.csv');
   parser.addOption('group', abbr: 'g', allowMultiple: true);
+  parser.addOption('ignore', allowMultiple: true);
 
   var argResults = parser.parse(args);
 
-  Directory rootDir = new Directory(Directory.current.path + '/' + argResults['in']);
+  var _root =  argResults['in'][0] == '/' ? '' : (Directory.current.path + '/');
+
+  Directory rootDir = new Directory(_root + argResults['in']);
+
+  var ignoreFile = new File(Platform.environment['HOME'] + '/.dfcsvignore');
+
+  List<String> ignores;
+
+  if(ignoreFile.existsSync()) {
+    ignores = ignoreFile.readAsLinesSync();
+    ignores.addAll(argResults['ignore']);
+  } else {
+    ignores = argResults['ignore'];
+  }
+
+  print(ignores);
 
   print(rootDir.path);
   print('');
@@ -26,7 +42,7 @@ main(List<String> args) {
     exit(1);
   }
 
-  Parser csvParser = new Parser(rootDir);
+  Parser csvParser = new Parser(rootDir, ignores);
 
   csvParser.search(argResults['group']).then((String csv) {
 

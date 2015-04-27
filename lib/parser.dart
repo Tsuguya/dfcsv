@@ -3,62 +3,79 @@ library dfcsv.parser;
 import 'dart:io';
 import 'dart:collection';
 import 'dart:async';
+import 'package:quiver/pattern.dart';
 
 class Parser {
 
-  Directory _rootDir;
+  final Directory _rootDir;
+  final Iterable _ignores;
 
-  Parser(this._rootDir);
-
-  Future<String> search(List<String> groups) =>
-    groups.length == 0 ? _searchAll() : _searchGroups(groups);
-
-  /**
-   * groupオプションなしの場合
-   */
-  Future<String> _searchAll() =>
-    _searchDirectory(_rootDir).then((String csv) => csv.replaceAll(new RegExp(r'\n$'), ''));
-
-  /**
-   * groupオプション付けた場合
-   */
-  Future<String> _searchGroups(List<String> groups) {
-
-    List<FileSystemEntity> targetFs = new List();
-
-    groups.forEach((String path) =>
-      targetFs.addAll(_parseDirectory(path.replaceFirst(new RegExp(r'\/$'), ''), _rootDir.path)));
-
-    List<Future<String>> waitList = new List();
-
-    targetFs.forEach((group) {
-      if(group is File) {
-        String fileSplit = _pathSplitter(group.path);
-        //print('* File: ' + fileSplit);
-        waitList.add(new Future.value(fileSplit + '\n'));
-        return;
-      }
-      waitList.add(_searchDirectory(group));
-
+  Parser(this._rootDir, List<String> ignores)
+    : _ignores = ignores.map((ignore) => {
+      'glob': new Glob(ignore[0] != '!' ? ignore : ignore.substring(1)),
+      'turning': ignore[0] != '!'
     });
 
-    return Future.wait(waitList).then((List<String> result) => result.join(',\n'));
-  }
+    Future<String> search(List<String> groups) =>
+    groups.length == 0 ? _searchAll() : _searchGroups(groups);
+
+    /**
+     * groupオプションなしの場合
+     */
+    Future<String> _searchAll() =>
+    _searchDirectory(_rootDir).then((String csv) => csv.replaceAll(new RegExp(r'\n$'), ''));
+
+    /**
+     * groupオプション付けた場合
+     */
+    Future<String> _searchGroups(List<String> groups) {
+
+      List<FileSystemEntity> targetFs = new List();
+
+      groups.forEach((String path) =>
+      targetFs.addAll(_parseDirectory(path.replaceFirst(new RegExp(r'\/$'), ''), _rootDir.path)));
+
+      return Future.wait(targetFs.map((group) {
+        if(group is File) {
+          String fileSplit = _pathSplitter(group.path);
+          return new Future.value(fileSplit + '\n');
+        }
+        return _searchDirectory(group);
+      })).then((List<String> result) => result.join(',\n'));
+    }
 
   /**
    * ファイル探索
    */
   Future<String> _searchDirectory(Directory targetDir) {
-    //print('* Search: ' + targetDir.path);
 
     return targetDir.list(recursive: true, followLinks: false).map((entity) {
-      if(entity is Directory) return '';
+      if(entity is Directory || _checkIgnore(entity)) return '';
 
       String consolidated = _pathSplitter(entity.path);
-      //print(consolidated);
       return consolidated + '\n';
 
     }).join();
+  }
+
+  /**
+   * ignoreで指定されたファイルを取り除く
+   */
+  bool _checkIgnore(FileSystemEntity entity) {
+    var path = entity.path.replaceAll(_rootDir.path, '');
+    var result = false;
+
+    _ignores.forEach((ignore) {
+      print(path);
+      print(ignore['glob']);
+      if(ignore['glob'].hasMatch(path)) {
+        result = ignore['turning'];
+      }
+      print(result);
+    });
+    print("\n");
+
+    return result;
   }
 
   /**
@@ -73,7 +90,7 @@ class Parser {
     String filePath = pathList.join('/');
     if(filePath == '') filePath = '/';
 
-    // csvで表示がバグらないためにパースする
+    // csvで表示がバグらないようににパースする
     return filePath.replaceAll('"', '""').replaceAll(',', '","') + ',' + filename.replaceAll('"', '""').replaceAll(',', '","');
   }
 

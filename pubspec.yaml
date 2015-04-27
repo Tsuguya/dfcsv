@@ -7,6 +7,8 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
   args: any
+  glob: '>=1.0.4 <2.0.0'
+  quiver: '>=0.21.0<0.22.0'
 dev_dependencies:
   unittest: any
 executables:
