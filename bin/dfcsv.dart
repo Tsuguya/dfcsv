@@ -7,15 +7,22 @@ import 'dart:io';
 import 'package:dfcsv/parser.dart';
 import 'package:args/args.dart';
 
+const String APP_VERSION = '0.1.3';
+
 main(List<String> args) {
 
-  var parser = new ArgParser();
-  parser.addOption('in',    abbr: 'i', defaultsTo: Directory.current.path);
-  parser.addOption('out',   abbr: 'o', defaultsTo: Directory.current.path + '/export.csv');
-  parser.addOption('group', abbr: 'g', allowMultiple: true);
-  parser.addOption('ignore', allowMultiple: true);
+  var parser = new ArgParser()
+    ..addOption('in',    abbr: 'i', defaultsTo: Directory.current.path)
+    ..addOption('out',   abbr: 'o', defaultsTo: Directory.current.path + '/export.csv')
+    ..addOption('group', abbr: 'g', allowMultiple: true)
+    ..addOption('ignore', allowMultiple: true)
+    ..addFlag('version', abbr: 'v');
 
   var argResults = parser.parse(args);
+
+  if(argResults['version']) {
+    return print('dfcsv version: ${APP_VERSION}');
+  }
 
   var _root =  argResults['in'][0] == '/' ? '' : Directory.current.path + '/';
 
