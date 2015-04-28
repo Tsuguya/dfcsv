@@ -66,14 +66,10 @@ class Parser {
     var result = false;
 
     _ignores.forEach((ignore) {
-      print(path);
-      print(ignore['glob']);
       if(ignore['glob'].hasMatch(path)) {
         result = ignore['turning'];
       }
-      print(result);
     });
-    print("\n");
 
     return result;
   }

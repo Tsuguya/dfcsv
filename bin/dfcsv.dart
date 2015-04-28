@@ -32,8 +32,6 @@ main(List<String> args) {
     ignores = argResults['ignore'];
   }
 
-  print(ignores);
-
   print(rootDir.path);
   print('');
 
