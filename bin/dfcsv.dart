@@ -21,16 +21,20 @@ main(List<String> args) {
 
   Directory rootDir = new Directory(_root + argResults['in']);
 
-  var ignoreFile = new File(Platform.environment['HOME'] + '/.dfcsvignore');
+  var ignoreHome = new File(Platform.environment['HOME'] + '/.dfcsvignore');
+  var ignoreProject = new File(rootDir.path + '/.dfcsvignore');
 
-  List<String> ignores;
+  List<String> ignores = new List();
 
-  if(ignoreFile.existsSync()) {
-    ignores = ignoreFile.readAsLinesSync();
-    ignores.addAll(argResults['ignore']);
-  } else {
-    ignores = argResults['ignore'];
+  if(ignoreHome.existsSync()) {
+    ignores.addAll(ignoreHome.readAsLinesSync());
   }
+
+  if(ignoreProject.existsSync()) {
+    ignores.addAll(ignoreProject.readAsLinesSync());
+  }
+
+  ignores.addAll(argResults['ignore']);
 
   print(rootDir.path);
   print('');
