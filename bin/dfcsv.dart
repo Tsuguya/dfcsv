@@ -34,7 +34,9 @@ main(List<String> args) {
     ignores.addAll(ignoreProject.readAsLinesSync());
   }
 
-  ignores.addAll(argResults['ignore']);
+  ignores
+    ..addAll(argResults['ignore'])
+    ..removeWhere((ignore) => ignore[0] == '#');
 
   print(rootDir.path);
   print('');
