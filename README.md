@@ -12,18 +12,11 @@ brew tap dart-lang/dart
 brew install dart --with-content-shell
 ```
 
-# Clone this repository
-
-```
-git clone https://github.com/Tsuguya/dfcsv.git
-cd dfcsv
-```
-
 # Setup
 
 ```
 pub get
-pub global activate --source path .
+pub global activate --source git https://github.com/Tsuguya/dfcsv.git
 ```
 
 ## Add dart PATH to your rc file.
