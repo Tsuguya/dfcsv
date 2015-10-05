@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:collection';
 import 'dart:async';
 import 'package:quiver/pattern.dart';
+import 'package:path/path.dart' as path;
 
 class Parser {
 
@@ -32,8 +33,9 @@ class Parser {
 
       List<FileSystemEntity> targetFs = new List();
 
-      groups.forEach((String path) =>
-      targetFs.addAll(_parseDirectory(path.replaceFirst(new RegExp(r'\/$'), ''), _rootDir.path)));
+      groups.forEach((String p) {
+        targetFs.addAll(_parseDirectory(p.replaceFirst(new RegExp(path.separator + r'$'), ''), _rootDir.path));
+      });
 
       return Future.wait(targetFs.map((group) {
         if(group is File) {
@@ -62,11 +64,11 @@ class Parser {
    * ignoreで指定されたファイルを取り除く
    */
   bool _checkIgnore(FileSystemEntity entity) {
-    var path = entity.path.replaceAll(_rootDir.path, '');
+    var p = entity.path.replaceAll(_rootDir.path, '');
     var result = false;
 
     _ignores.forEach((ignore) {
-      if(ignore['glob'].hasMatch(path)) {
+      if(ignore['glob'].hasMatch(p)) {
         result = ignore['turning'];
       }
     });
@@ -78,9 +80,9 @@ class Parser {
    * rootDirより上の階層の削除と
    * パスとファイル名の分離(カンマ区切り)を行う
    */
-  String _pathSplitter(String path) {
+  String _pathSplitter(String p) {
 
-    List<String> pathList = path.replaceFirst(_rootDir.path, '').split('/');
+    List<String> pathList = p.replaceFirst(_rootDir.path, '').split(path.separator);
     String filename = pathList.removeLast();
 
     String filePath = pathList.join('/');
@@ -97,14 +99,14 @@ class Parser {
   List<FileSystemEntity> _parseDirectory(String dir, [String current = '']) {
     List<FileSystemEntity> returnList = new List();
 
-    Queue parseDir = new Queue.from(dir.split('/'));
+    Queue parseDir = new Queue.from(dir.split(path.separator));
 
     if(parseDir.first == '') parseDir.removeFirst();
 
     while(parseDir.length != 0) {
       String routeDir = parseDir.removeFirst();
       if(routeDir != '*') {
-        current += '/' + routeDir;
+        current += path.separator + routeDir;
         continue;
       }
 
@@ -115,7 +117,7 @@ class Parser {
         if(parseDir.length != 0) {
           // 下位のパス指定がある場合はファイルはリストに含めない
           if(entity is Directory) {
-            returnList.addAll(_parseDirectory(entity.path + '/' + parseDir.join('/')));
+            returnList.addAll(_parseDirectory(entity.path + path.separator + parseDir.join(path.separator)));
           }
           return;
         }

@@ -6,14 +6,19 @@ library dfcsv;
 import 'dart:io';
 import 'package:dfcsv/parser.dart';
 import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
 
-const String APP_VERSION = '0.1.3';
+const String APP_VERSION = '0.2.0';
 
 main(List<String> args) {
 
+  String current = path.current;
+  String _rootPath = path.rootPrefix(current);
+  String _separator = path.separator;
+
   var parser = new ArgParser()
-    ..addOption('in',    abbr: 'i', defaultsTo: Directory.current.path)
-    ..addOption('out',   abbr: 'o', defaultsTo: Directory.current.path + '/export.csv')
+    ..addOption('in',    abbr: 'i', defaultsTo: current)
+    ..addOption('out',   abbr: 'o', defaultsTo: path.join(current, 'export.csv'))
     ..addOption('group', abbr: 'g', allowMultiple: true)
     ..addOption('ignore', allowMultiple: true)
     ..addFlag('version', abbr: 'v');
@@ -24,12 +29,12 @@ main(List<String> args) {
     return print('dfcsv version: ${APP_VERSION}');
   }
 
-  var _root =  argResults['in'][0] == '/' ? '' : Directory.current.path + '/';
+  var _root =  argResults['in'][0] == _rootPath ? '' : current + _separator;
 
   Directory rootDir = new Directory(_root + argResults['in']);
 
-  var ignoreHome = new File(Platform.environment['HOME'] + '/.dfcsvignore');
-  var ignoreProject = new File(rootDir.path + '/.dfcsvignore');
+  var ignoreHome = new File(Platform.environment['HOME'] + _separator + '.dfcsvignore');
+  var ignoreProject = new File(rootDir.path + _separator + '.dfcsvignore');
 
   List<String> ignores = new List();
 
@@ -59,15 +64,16 @@ main(List<String> args) {
 
     File exportFile = new File(argResults['out']);
     print('');
-    exportFile.writeAsString(csv)
-    .catchError((err) {
-      print(err);
-      print('break.');
-      exit(1);
-    })
-    .then((t) {
-      print('complete!');
-    });
+    exportFile
+      .writeAsString(csv)
+      .catchError((err) {
+        print(err);
+        print('break.');
+        exit(1);
+      })
+      .then((t) {
+        print('complete!');
+      });
   });
 
 }
