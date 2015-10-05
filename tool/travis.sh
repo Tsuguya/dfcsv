@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 mkdir -p ./sample/common/a/a-1 ./sample/common/a/a-2/tmp ./sample/common/b/b-{1,2} ./sample/common/c/c-{1..3} ./sample/common/d ./sample/test
 
