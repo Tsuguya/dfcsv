@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Tsuguya/dfcsv.svg)](https://travis-ci.org/Tsuguya/dfcsv)
+
 # dfcsv
 
 パス部分とファイル名を分離してcsvで吐き出すもの。

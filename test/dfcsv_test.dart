@@ -10,13 +10,13 @@ import 'package:unittest/unittest.dart';
 void main() => defineTests();
 
 void defineTests() {
-
+print(Directory.current);
   final noIgnore = new List();
   final ignore = new List()..add('**/*.html')..add('!/common/a/a-1/test.html');
   print(ignore);
 
-  var parser = new Parser(new Directory(Directory.current.path + '/../sample'), noIgnore);
-  var parser2 = new Parser(new Directory(Directory.current.path + '/../sample'), ignore);
+  var parser = new Parser(new Directory(Directory.current.path + '/sample'), noIgnore);
+  var parser2 = new Parser(new Directory(Directory.current.path + '/sample'), ignore);
 
   // TODO:CSV形式になっているかチェックする必要がある
 
